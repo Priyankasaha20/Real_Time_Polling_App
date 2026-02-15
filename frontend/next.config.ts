@@ -4,7 +4,7 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://140.245.241.70:5001/api/health",
+        destination: "https://pollappapi.priyankaz.me/api/health",
       },
     ];
   },
