@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pollsafe-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pollsafe
+      POSTGRES_PASSWORD: pollsafe123
+      POSTGRES_DB: pollsafe
+    ports:
+      - "54320:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pollsafe"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

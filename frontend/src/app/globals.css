@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-brutCream text-brutDark font-display;
+  }
+
+  ::selection {
+    @apply bg-brutYellow text-brutDark;
+  }
+}
+
+@layer components {
+  .brutal-card {
+    @apply bg-white border-[3px] border-brutDark shadow-brutal p-6;
+  }
+
+  .brutal-card-lg {
+    @apply bg-white border-[3px] border-brutDark shadow-brutal-lg p-8;
+  }
+
+  .brutal-btn {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 font-mono font-bold text-sm uppercase tracking-wider border-[3px] border-brutDark shadow-brutal transition-all duration-100 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-brutal;
+  }
+
+  .brutal-btn-primary {
+    @apply brutal-btn bg-brutYellow text-brutDark;
+  }
+
+  .brutal-btn-secondary {
+    @apply brutal-btn bg-white text-brutDark;
+  }
+
+  .brutal-btn-danger {
+    @apply brutal-btn bg-brutRed text-white;
+  }
+
+  .brutal-btn-google {
+    @apply brutal-btn bg-white text-brutDark;
+  }
+
+  .brutal-input {
+    @apply w-full px-4 py-3 font-mono text-sm border-[3px] border-brutDark bg-white outline-none transition-all duration-100 focus:shadow-brutal focus:translate-x-[-2px] focus:translate-y-[-2px] placeholder:text-gray-400;
+  }
+
+  .brutal-radio {
+    @apply brutal-card cursor-pointer transition-all duration-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-brutal-lg;
+  }
+
+  .brutal-radio-selected {
+    @apply brutal-card bg-brutYellow cursor-pointer translate-x-[2px] translate-y-[2px] shadow-none;
+  }
+
+  .brutal-badge {
+    @apply inline-block px-3 py-1 font-mono text-xs font-bold uppercase border-[2px] border-brutDark;
+  }
+
+  .brutal-link {
+    @apply font-mono font-bold underline decoration-[3px] decoration-brutYellow underline-offset-4 hover:decoration-brutPink transition-colors;
+  }
+
+  .page-container {
+    @apply max-w-4xl mx-auto px-4 py-8;
+  }
+
+  .page-title {
+    @apply text-4xl md:text-5xl font-bold font-display tracking-tight mb-2;
+  }
+
+  .page-subtitle {
+    @apply text-lg font-mono text-gray-600 mb-8;
+  }
+}
+
+/* Retro grid background */
+.retro-grid {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, rgba(26, 26, 46, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(26, 26, 46, 0.05) 1px, transparent 1px);
+}
+
+/* Marquee scroll for fun */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+/* Vote bar animation */
+@keyframes grow-bar {
+  from {
+    width: 0%;
+  }
+}
+
+.animate-grow {
+  animation: grow-bar 0.6s ease-out;
+}

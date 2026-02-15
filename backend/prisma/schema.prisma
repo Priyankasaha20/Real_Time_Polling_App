@@ -1,0 +1,78 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum AuthProvider {
+    email
+    google
+}
+
+model User {
+    id             String       @id @default(cuid())
+    email          String       @unique
+    passwordHash   String?
+    googleId       String?      @unique
+    name           String
+    profilePicture String?
+    provider       AuthProvider @default(email)
+    createdAt      DateTime     @default(now())
+    updatedAt      DateTime     @updatedAt
+
+    polls Poll[]
+    votes Vote[]
+}
+
+model Poll {
+    id        String   @id @default(cuid())
+    question  String
+    isPublic  Boolean  @default(true)
+    creatorId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    creator User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+    options Option[]
+    votes   Vote[]
+}
+
+model Option {
+    id        String @id @default(cuid())
+    text      String
+    voteCount Int    @default(0)
+    pollId    String
+
+    poll  Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+    votes Vote[]
+
+    @@index([pollId])
+}
+
+model Vote {
+    id                String   @id @default(cuid())
+    pollId            String
+    optionId          String
+    userId            String?
+    ipHash            String
+    deviceFingerprint String
+    anonymousKey      String?
+    createdAt         DateTime @default(now())
+
+    poll   Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+    option Option @relation(fields: [optionId], references: [id], onDelete: Cascade)
+    user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+    // Registered users can only vote once per poll
+    @@unique([pollId, userId])
+    // Anonymous users can only vote once per poll for a server-side identity key
+    @@unique([pollId, anonymousKey])
+    // Indexes for anonymous vote checks
+    @@index([pollId, ipHash])
+    @@index([pollId, deviceFingerprint])
+    // Index for device rate-limiting query
+    @@index([pollId, deviceFingerprint, createdAt])
+}
