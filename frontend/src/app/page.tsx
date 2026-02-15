@@ -10,24 +10,27 @@ export default function HomePage() {
   const { user } = useAuth();
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [reloadTick, setReloadTick] = useState(0);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      setLoadError("");
       try {
         const data = await pollsAPI.list(page, 9);
         setPolls(data.polls);
         setTotalPages(data.pagination.totalPages);
       } catch {
-        // ignore
+        setLoadError("Could not load public polls right now.");
       } finally {
         setLoading(false);
       }
     };
     load();
-  }, [page]);
+  }, [page, reloadTick]);
 
   return (
     <div className="page-container">
@@ -49,17 +52,29 @@ export default function HomePage() {
               Anti-abuse protection with device rate limiting. Real-time results
               via WebSocket. Anonymous & authenticated voting.
             </p>
+
+            {user && (
+              <p className="font-mono text-xs text-gray-700 mb-4">
+                Welcome back, <span className="font-bold">{user.name}</span>.
+              </p>
+            )}
+
             <div className="flex flex-wrap gap-3">
               {user ? (
-                <Link href="/create" className="brutal-btn bg-white !text-sm">
-                  + Create a Poll
-                </Link>
+                <>
+                  <Link href="/create" className="brutal-btn bg-white !text-sm">
+                    + Create a Poll
+                  </Link>
+                  <Link
+                    href="/my-polls"
+                    className="brutal-btn bg-brutDark text-brutYellow !text-sm"
+                  >
+                    My Polls
+                  </Link>
+                </>
               ) : (
                 <>
-                  <Link
-                    href="/signup"
-                    className="brutal-btn bg-white !text-sm"
-                  >
+                  <Link href="/signup" className="brutal-btn bg-white !text-sm">
                     Get Started Free →
                   </Link>
                   <Link
@@ -79,19 +94,31 @@ export default function HomePage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 bg-brutPink border-[2px] border-brutDark" />
-                  <div className="flex-1 h-6 bg-brutPink/30 border-[2px] border-brutDark" style={{ width: "80%" }} />
+                  <div
+                    className="flex-1 h-6 bg-brutPink/30 border-[2px] border-brutDark"
+                    style={{ width: "80%" }}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 bg-brutBlue border-[2px] border-brutDark" />
-                  <div className="flex-1 h-6 bg-brutBlue/30 border-[2px] border-brutDark" style={{ width: "60%" }} />
+                  <div
+                    className="flex-1 h-6 bg-brutBlue/30 border-[2px] border-brutDark"
+                    style={{ width: "60%" }}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 bg-brutPurple border-[2px] border-brutDark" />
-                  <div className="flex-1 h-6 bg-brutPurple/30 border-[2px] border-brutDark" style={{ width: "45%" }} />
+                  <div
+                    className="flex-1 h-6 bg-brutPurple/30 border-[2px] border-brutDark"
+                    style={{ width: "45%" }}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 bg-brutGreen border-[2px] border-brutDark" />
-                  <div className="flex-1 h-6 bg-brutGreen/30 border-[2px] border-brutDark" style={{ width: "30%" }} />
+                  <div
+                    className="flex-1 h-6 bg-brutGreen/30 border-[2px] border-brutDark"
+                    style={{ width: "30%" }}
+                  />
                 </div>
               </div>
             </div>
@@ -105,7 +132,8 @@ export default function HomePage() {
           <div className="text-3xl mb-3">🛡️</div>
           <h3 className="font-display font-bold text-lg mb-1">Anti-Abuse</h3>
           <p className="font-mono text-xs text-gray-600">
-            3-layer fairness system: device rate limiting, user checks, anonymous checks.
+            3-layer fairness system: device rate limiting, user checks,
+            anonymous checks.
           </p>
         </div>
         <div className="brutal-card">
@@ -128,9 +156,26 @@ export default function HomePage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="font-display font-bold text-2xl">Explore Polls</h2>
-          <p className="font-mono text-sm text-gray-500">Public polls from the community</p>
+          <p className="font-mono text-sm text-gray-500">
+            Public polls from the community
+          </p>
+        </div>
+        <div className="font-mono text-xs text-gray-500">
+          Page {page} of {totalPages}
         </div>
       </div>
+
+      {loadError && (
+        <div className="bg-brutRed/10 border-[3px] border-brutRed p-4 font-mono text-sm text-brutRed font-bold mb-6 flex items-center justify-between gap-3">
+          <span>✗ {loadError}</span>
+          <button
+            onClick={() => setReloadTick((v) => v + 1)}
+            className="brutal-btn-secondary !text-xs !py-1 !px-3"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -161,7 +206,6 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {polls.map((poll) => {
               const totalVotes = poll._count?.votes ?? 0;
-              const topOption = poll.options[0];
               return (
                 <Link
                   key={poll.id}
@@ -177,6 +221,9 @@ export default function HomePage() {
                         by {poll.creator.name}
                       </span>
                     )}
+                    <span className="font-mono text-[11px] text-gray-400">
+                      {new Date(poll.createdAt).toLocaleDateString()}
+                    </span>
                     <span className="brutal-badge bg-brutYellow !text-[10px] !py-0">
                       {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
                     </span>
@@ -192,7 +239,10 @@ export default function HomePage() {
                           style={{
                             width: `${
                               totalVotes > 0
-                                ? Math.max((opt.voteCount / totalVotes) * 100, 5)
+                                ? Math.max(
+                                    (opt.voteCount / totalVotes) * 100,
+                                    5,
+                                  )
                                 : 5
                             }%`,
                           }}

@@ -39,10 +39,6 @@
     @apply brutal-btn bg-brutRed text-white;
   }
 
-  .brutal-btn-google {
-    @apply brutal-btn bg-white text-brutDark;
-  }
-
   .brutal-input {
     @apply w-full px-4 py-3 font-mono text-sm border-[3px] border-brutDark bg-white outline-none transition-all duration-100 focus:shadow-brutal focus:translate-x-[-2px] focus:translate-y-[-2px] placeholder:text-gray-400;
   }

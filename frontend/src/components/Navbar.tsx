@@ -30,9 +30,6 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/" className="brutal-btn-secondary !py-2 !px-4 !text-xs">
-            Explore
-          </Link>
           {!loading && (
             <>
               {user ? (
@@ -93,27 +90,46 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden border-t-[3px] border-brutDark bg-white p-4 flex flex-col gap-2">
-          <Link href="/" onClick={() => setMenuOpen(false)} className="brutal-btn-secondary !text-xs">
-            Explore
-          </Link>
           {!loading && user ? (
             <>
-              <Link href="/create" onClick={() => setMenuOpen(false)} className="brutal-btn-primary !text-xs">
+              <Link
+                href="/create"
+                onClick={() => setMenuOpen(false)}
+                className="brutal-btn-primary !text-xs"
+              >
                 + Create Poll
               </Link>
-              <Link href="/my-polls" onClick={() => setMenuOpen(false)} className="brutal-btn-secondary !text-xs">
+              <Link
+                href="/my-polls"
+                onClick={() => setMenuOpen(false)}
+                className="brutal-btn-secondary !text-xs"
+              >
                 My Polls
               </Link>
-              <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="brutal-btn-danger !text-xs">
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setMenuOpen(false);
+                }}
+                className="brutal-btn-danger !text-xs"
+              >
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" onClick={() => setMenuOpen(false)} className="brutal-btn-secondary !text-xs">
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="brutal-btn-secondary !text-xs"
+              >
                 Login
               </Link>
-              <Link href="/signup" onClick={() => setMenuOpen(false)} className="brutal-btn-primary !text-xs">
+              <Link
+                href="/signup"
+                onClick={() => setMenuOpen(false)}
+                className="brutal-btn-primary !text-xs"
+              >
                 Sign Up
               </Link>
             </>

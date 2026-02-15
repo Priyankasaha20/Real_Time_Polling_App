@@ -53,6 +53,9 @@ export const votesAPI = {
   checkStatus: (pollId: string, fingerprint: string) =>
     fetchAPI(`/votes/${pollId}/status?fingerprint=${encodeURIComponent(fingerprint)}`),
 
-  cast: (pollId: string, body: { optionId: string; fingerprint: string }) =>
+  cast: (
+    pollId: string,
+    body: { optionId: string; fingerprint: string; voterName?: string }
+  ) =>
     fetchAPI(`/votes/${pollId}`, { method: "POST", body: JSON.stringify(body) }),
 };

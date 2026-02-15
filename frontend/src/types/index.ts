@@ -3,7 +3,6 @@ export interface User {
   email: string;
   name: string;
   profilePicture: string | null;
-  provider: string;
 }
 
 export interface Option {
@@ -11,6 +10,14 @@ export interface Option {
   text: string;
   voteCount: number;
   pollId: string;
+}
+
+export interface PollParticipant {
+  id: string;
+  name: string;
+  optionId: string;
+  optionText: string;
+  createdAt: string;
 }
 
 export interface Poll {
@@ -27,6 +34,7 @@ export interface Poll {
     profilePicture: string | null;
   };
   _count?: { votes: number };
+  participants?: PollParticipant[];
 }
 
 export interface VoteStatus {
@@ -35,6 +43,7 @@ export interface VoteStatus {
   reason?: "rate_limit" | "anonymous_used" | "already_voted";
   votedOptionId?: string;
   message?: string;
+  retryAfterSeconds?: number;
 }
 
 export interface PollUpdate {
