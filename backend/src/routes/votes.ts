@@ -21,6 +21,47 @@ function getDeviceFingerprint(req: Request): string {
     .digest("hex");
 }
 
+async function getDeviceRateLimitInfo(pollId: string, deviceFingerprint: string) {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+  const [deviceVoteCount, oldestVoteInWindow] = await Promise.all([
+    prisma.vote.count({
+      where: {
+        pollId,
+        deviceFingerprint,
+        createdAt: { gt: oneHourAgo },
+      },
+    }),
+    prisma.vote.findFirst({
+      where: {
+        pollId,
+        deviceFingerprint,
+        createdAt: { gt: oneHourAgo },
+      },
+      orderBy: { createdAt: "asc" },
+      select: { createdAt: true },
+    }),
+  ]);
+
+  if (deviceVoteCount < 2 || !oldestVoteInWindow) {
+    return {
+      isLimited: false,
+      retryAfterSeconds: 0,
+    };
+  }
+
+  const expiresAt = oldestVoteInWindow.createdAt.getTime() + 60 * 60 * 1000;
+  const retryAfterSeconds = Math.max(
+    1,
+    Math.ceil((expiresAt - Date.now()) / 1000)
+  );
+
+  return {
+    isLimited: true,
+    retryAfterSeconds,
+  };
+}
+
 // ─── Check Vote Status ────────────────────────────────────────────
 router.get(
   "/:pollId/status",
@@ -50,22 +91,19 @@ router.get(
       const ipHash = hashIP(clientIP);
 
       // Check device rate limit (Layer 1)
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      const deviceVoteCount = await prisma.vote.count({
-        where: {
-          pollId,
-          deviceFingerprint,
-          createdAt: { gt: oneHourAgo },
-        },
-      });
+      const deviceRateLimit = await getDeviceRateLimitInfo(
+        pollId,
+        deviceFingerprint
+      );
 
-      if (deviceVoteCount >= 2) {
+      if (deviceRateLimit.isLimited) {
         res.json({
           hasVoted: false,
           canVote: false,
           reason: "rate_limit",
           message:
             "This device has reached the vote limit (2 per hour). Please try again later.",
+          retryAfterSeconds: deviceRateLimit.retryAfterSeconds,
         });
         return;
       }
@@ -166,19 +204,16 @@ router.post(
       }
 
       // ── Layer 1: Device Rate Limit (Universal) ──────────────────
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      const deviceVoteCount = await prisma.vote.count({
-        where: {
-          pollId,
-          deviceFingerprint,
-          createdAt: { gt: oneHourAgo },
-        },
-      });
+      const deviceRateLimit = await getDeviceRateLimitInfo(
+        pollId,
+        deviceFingerprint
+      );
 
-      if (deviceVoteCount >= 2) {
+      if (deviceRateLimit.isLimited) {
         res.status(429).json({
           error: "Rate limit: Maximum 2 votes per device per hour.",
           reason: "rate_limit",
+          retryAfterSeconds: deviceRateLimit.retryAfterSeconds,
         });
         return;
       }
