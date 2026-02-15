@@ -10,13 +10,6 @@ export interface AuthUser {
   profilePicture: string | null;
 }
 
-declare global {
-  namespace Express {
-    // Augment Express request user type
-    interface User extends AuthUser {}
-  }
-}
-
 /**
  * verifyUser: Soft auth — attaches user to request if valid JWT exists,
  * but doesn't block the request (allows anonymous flow).

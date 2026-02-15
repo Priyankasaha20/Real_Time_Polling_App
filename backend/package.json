@@ -7,7 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "deploy:prod": "npm ci && npm run build && prisma generate && prisma migrate deploy && (pm2 restart pollsafe-backend --update-env || pm2 start dist/index.js --name pollsafe-backend)",
+    "deploy:prod": "npm ci && prisma generate && npm run build && prisma migrate deploy && (pm2 restart pollsafe-backend --update-env || pm2 start dist/index.js --name pollsafe-backend)",
     "deploy:prod:seed": "npm run deploy:prod && npm run db:seed",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",

@@ -4,6 +4,7 @@ import { verifyUser } from "../middleware/auth";
 import { hashIP } from "../utils/hash";
 import { getIO } from "../socket";
 import { prisma } from "../lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 const router = Router();
 
@@ -233,7 +234,7 @@ router.post(
         }
 
         // Proceed to vote
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
           const vote = await tx.vote.create({
             data: {
               pollId,
@@ -295,7 +296,7 @@ router.post(
       }
 
       // Proceed with anonymous vote
-      const result = await prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         const vote = await tx.vote.create({
           data: {
             pollId,
