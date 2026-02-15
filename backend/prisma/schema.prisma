@@ -7,21 +7,14 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-enum AuthProvider {
-    email
-    google
-}
-
 model User {
-    id             String       @id @default(cuid())
-    email          String       @unique
+    id             String   @id @default(cuid())
+    email          String   @unique
     passwordHash   String?
-    googleId       String?      @unique
     name           String
     profilePicture String?
-    provider       AuthProvider @default(email)
-    createdAt      DateTime     @default(now())
-    updatedAt      DateTime     @updatedAt
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
 
     polls Poll[]
     votes Vote[]
@@ -57,6 +50,7 @@ model Vote {
     pollId            String
     optionId          String
     userId            String?
+    participantName   String?
     ipHash            String
     deviceFingerprint String
     anonymousKey      String?

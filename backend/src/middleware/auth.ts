@@ -8,12 +8,11 @@ export interface AuthUser {
   email: string;
   name: string;
   profilePicture: string | null;
-  provider: string;
 }
 
 declare global {
   namespace Express {
-    // Augment the existing User interface from passport
+    // Augment Express request user type
     interface User extends AuthUser {}
   }
 }
@@ -39,7 +38,6 @@ export async function verifyUser(
         email: true,
         name: true,
         profilePicture: true,
-        provider: true,
       },
     });
 

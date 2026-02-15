@@ -126,9 +126,11 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const pollId = req.params.pollId as string;
-      const { optionId } = req.body;
+      const { optionId, voterName } = req.body;
       const userId = req.user?.id;
       const deviceFingerprint = getDeviceFingerprint(req);
+      const trimmedVoterName =
+        typeof voterName === "string" ? voterName.trim() : "";
 
       if (!optionId) {
         res.status(400).json({ error: "optionId is required" });
@@ -202,6 +204,7 @@ router.post(
               pollId,
               optionId,
               userId,
+              participantName: req.user?.name || "Authenticated User",
               ipHash,
               deviceFingerprint,
             },
@@ -218,7 +221,23 @@ router.post(
         // Emit real-time update
         await emitPollUpdate(pollId);
 
-        res.status(201).json({ vote: result, message: "Vote recorded!" });
+        const results = await getPollResults(pollId);
+
+        res.status(201).json({ vote: result, results, message: "Vote recorded!" });
+        return;
+      }
+
+      if (!trimmedVoterName) {
+        res.status(400).json({
+          error: "voterName is required for anonymous voting.",
+        });
+        return;
+      }
+
+      if (trimmedVoterName.length > 80) {
+        res.status(400).json({
+          error: "voterName must be 80 characters or fewer.",
+        });
         return;
       }
 
@@ -247,6 +266,7 @@ router.post(
             pollId,
             optionId,
             userId: null,
+            participantName: trimmedVoterName,
             ipHash,
             deviceFingerprint,
           },
@@ -263,7 +283,9 @@ router.post(
       // Emit real-time update
       await emitPollUpdate(pollId);
 
-      res.status(201).json({ vote: result, message: "Vote recorded!" });
+      const results = await getPollResults(pollId);
+
+      res.status(201).json({ vote: result, results, message: "Vote recorded!" });
     } catch (error: any) {
       // Handle unique constraint violation (race condition safety net)
       if (error.code === "P2002") {
@@ -286,13 +308,7 @@ router.post(
 // ─── Emit Poll Update via Socket.io ────────────────────────────────
 async function emitPollUpdate(pollId: string) {
   try {
-    const poll = await prisma.poll.findUnique({
-      where: { id: pollId },
-      include: {
-        options: { orderBy: { voteCount: "desc" } },
-        _count: { select: { votes: true } },
-      },
-    });
+    const poll = await getPollResults(pollId);
 
     if (poll) {
       const io = getIO();
@@ -305,6 +321,16 @@ async function emitPollUpdate(pollId: string) {
   } catch (error) {
     console.error("Socket emit error:", error);
   }
+}
+
+async function getPollResults(pollId: string) {
+  return prisma.poll.findUnique({
+    where: { id: pollId },
+    include: {
+      options: { orderBy: { voteCount: "desc" } },
+      _count: { select: { votes: true } },
+    },
+  });
 }
 
 export default router;

@@ -2,10 +2,8 @@ import express from "express";
 import http from "http";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import passport from "passport";
 import rateLimit from "express-rate-limit";
 import { env } from "./config/env";
-import { configurePassport } from "./config/passport";
 import { initSocket } from "./socket";
 import authRoutes from "./routes/auth";
 import pollRoutes from "./routes/polls";
@@ -47,10 +45,6 @@ app.use(
 );
 app.use(express.json({ limit: "20kb" }));
 app.use(cookieParser());
-app.use(passport.initialize());
-
-// ─── Configure Passport ────────────────────────────────────────────
-configurePassport();
 
 // ─── Health Check ──────────────────────────────────────────────────
 app.get("/api/health", (_req, res) => {

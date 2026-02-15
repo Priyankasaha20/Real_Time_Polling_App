@@ -1,4 +1,3 @@
-import { AuthProvider } from "@prisma/client";
 import { prisma } from "../src/lib/prisma";
 import bcrypt from "bcrypt";
 
@@ -15,7 +14,6 @@ async function main() {
       email: "alice@example.com",
       name: "Alice Johnson",
       passwordHash,
-      provider: AuthProvider.email,
     },
   });
 
@@ -26,7 +24,6 @@ async function main() {
       email: "bob@example.com",
       name: "Bob Smith",
       passwordHash,
-      provider: AuthProvider.email,
     },
   });
 

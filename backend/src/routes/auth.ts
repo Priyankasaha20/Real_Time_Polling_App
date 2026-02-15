@@ -1,8 +1,6 @@
 import { Router, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import passport from "passport";
-import { AuthProvider } from "@prisma/client";
 import { env } from "../config/env";
 import { verifyUser } from "../middleware/auth";
 import { prisma } from "../lib/prisma";
@@ -53,9 +51,8 @@ router.post("/signup", async (req: Request, res: Response) => {
         email,
         name,
         passwordHash,
-        provider: AuthProvider.email,
       },
-      select: { id: true, email: true, name: true, profilePicture: true, provider: true },
+      select: { id: true, email: true, name: true, profilePicture: true },
     });
 
     const token = generateToken(user.id);
@@ -99,7 +96,6 @@ router.post("/login", async (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         profilePicture: user.profilePicture,
-        provider: user.provider,
       },
     });
   } catch (error) {
@@ -107,26 +103,6 @@ router.post("/login", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
-// ─── Google OAuth ──────────────────────────────────────────────────
-router.get(
-  "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
-
-router.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    session: false,
-    failureRedirect: `${env.FRONTEND_URL}/login?error=google_auth_failed`,
-  }),
-  (req: Request, res: Response) => {
-    const user = req.user as any;
-    const token = generateToken(user.id);
-    setTokenCookie(res, token);
-    res.redirect(`${env.FRONTEND_URL}/auth/callback`);
-  }
-);
 
 // ─── Get Current User (me) ─────────────────────────────────────────
 router.get("/me", verifyUser, (req: Request, res: Response) => {
