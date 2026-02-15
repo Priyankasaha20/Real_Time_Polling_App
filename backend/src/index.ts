@@ -12,6 +12,8 @@ import voteRoutes from "./routes/votes";
 const app = express();
 const server = http.createServer(app);
 
+app.set("trust proxy", 1);
+
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 120,

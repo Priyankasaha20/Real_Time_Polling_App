@@ -22,6 +22,25 @@ function getDeviceFingerprint(req: Request): string {
     .digest("hex");
 }
 
+function getRequestFingerprint(req: Request): string {
+  const bodyFingerprint = req.body?.fingerprint;
+  const queryFingerprint = req.query?.fingerprint;
+
+  const candidate =
+    typeof bodyFingerprint === "string"
+      ? bodyFingerprint
+      : typeof queryFingerprint === "string"
+      ? queryFingerprint
+      : "";
+
+  const normalized = candidate.trim();
+  if (normalized.length >= 8 && normalized.length <= 255) {
+    return normalized;
+  }
+
+  return getDeviceFingerprint(req);
+}
+
 async function getDeviceRateLimitInfo(pollId: string, deviceFingerprint: string) {
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
@@ -71,7 +90,8 @@ router.get(
     try {
       const pollId = req.params.pollId as string;
       const userId = req.user?.id;
-      const deviceFingerprint = getDeviceFingerprint(req);
+      const deviceFingerprint = getRequestFingerprint(req);
+      const anonymousKey = `anon:${deviceFingerprint}`;
 
       const poll = await prisma.poll.findUnique({
         where: { id: pollId },
@@ -135,7 +155,7 @@ router.get(
         where: {
           pollId,
           userId: null,
-          OR: [{ ipHash }, { deviceFingerprint }],
+          anonymousKey,
         },
       });
 
@@ -167,7 +187,8 @@ router.post(
       const pollId = req.params.pollId as string;
       const { optionId, voterName } = req.body;
       const userId = req.user?.id;
-      const deviceFingerprint = getDeviceFingerprint(req);
+      const deviceFingerprint = getRequestFingerprint(req);
+      const anonymousKey = `anon:${deviceFingerprint}`;
       const trimmedVoterName =
         typeof voterName === "string" ? voterName.trim() : "";
 
@@ -282,7 +303,7 @@ router.post(
         where: {
           pollId,
           userId: null,
-          OR: [{ ipHash }, { deviceFingerprint }],
+          anonymousKey,
         },
       });
 
@@ -305,6 +326,7 @@ router.post(
             participantName: trimmedVoterName,
             ipHash,
             deviceFingerprint,
+            anonymousKey,
           },
         });
 
